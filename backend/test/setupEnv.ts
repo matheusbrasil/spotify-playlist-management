@@ -1,0 +1,10 @@
+process.env.NODE_ENV = process.env.NODE_ENV ?? 'test';
+process.env.PORT = process.env.PORT ?? '0';
+process.env.CLIENT_URL = process.env.CLIENT_URL ?? 'http://localhost';
+process.env.SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID ?? 'test-client-id';
+process.env.SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET ?? 'test-client-secret';
+process.env.SPOTIFY_REDIRECT_URI = process.env.SPOTIFY_REDIRECT_URI ?? 'http://localhost/callback';
+process.env.SPOTIFY_SCOPES = process.env.SPOTIFY_SCOPES ?? 'playlist-read-private';
+process.env.GEMINI_API_KEY = process.env.GEMINI_API_KEY ?? '';
+process.env.GEMINI_MODEL = process.env.GEMINI_MODEL ?? 'gemini-1.5-flash';
+process.env.AUTH_SESSION_TTL_MINUTES = process.env.AUTH_SESSION_TTL_MINUTES ?? '5';

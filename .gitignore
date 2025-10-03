@@ -1,0 +1,16 @@
+node_modules/
+backend/node_modules/
+mobile/node_modules/
+dist/
+backend/dist/
+mobile/dist/
+.expo/
+.env
+backend/.env
+backend/.env.test
+mobile/.env
+expo-env.d.ts
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+.DS_Store
