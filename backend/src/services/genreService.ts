@@ -1,8 +1,19 @@
 import { getMultipleArtists } from './spotifyService.js';
-import { inferGenres, isConfigured as isGeminiConfigured } from './geminiService.js';
+import { inferGenreForTrack, inferGenres, isConfigured as isGeminiConfigured } from './geminiService.js';
 import type { EnrichedTrack, SpotifyPlaylistTrack } from '../types/spotify.js';
 
-const SANITIZED_UNKNOWN = new Set(['unknown', 'n/a', 'none', 'misc', 'other']);
+const SANITIZED_UNKNOWN = new Set([
+  'unknown',
+  'unknown genre',
+  'n/a',
+  'none',
+  'misc',
+  'other',
+  'tbd',
+  '???',
+]);
+
+const DEFAULT_GENRE = 'Pop';
 
 const sanitizeGenre = (input?: string | null): string | null => {
   if (!input) return null;
@@ -18,7 +29,7 @@ const sanitizeGenre = (input?: string | null): string | null => {
     .join(' ');
 };
 
-const ensureGenre = (input?: string | null): string => sanitizeGenre(input) ?? 'Unknown';
+const ensureGenre = (input?: string | null): string => sanitizeGenre(input) ?? DEFAULT_GENRE;
 
 const isGenreMissing = (input?: string | null): boolean => sanitizeGenre(input) === null;
 
@@ -67,9 +78,22 @@ export const enrichTracksWithGenres = async (
 
   if (missing.length && isGeminiConfigured()) {
     const genreMap = await inferGenres(missing);
+    const unresolved: EnrichedTrack[] = [];
+
     for (const track of missing) {
       const generated = genreMap[track.id];
       const normalized = sanitizeGenre(generated);
+      if (normalized) {
+        track.genre = normalized;
+        track.sourceGenre = 'gemini';
+      } else {
+        unresolved.push(track);
+      }
+    }
+
+    for (const track of unresolved) {
+      const retry = await inferGenreForTrack(track);
+      const normalized = sanitizeGenre(retry);
       if (normalized) {
         track.genre = normalized;
         track.sourceGenre = 'gemini';
@@ -80,7 +104,7 @@ export const enrichTracksWithGenres = async (
   return enriched.map((track) => ({
     ...track,
     genre: ensureGenre(track.genre),
-    sourceGenre: track.sourceGenre ?? 'unknown',
+    sourceGenre: track.sourceGenre ?? 'fallback',
   }));
 };
 

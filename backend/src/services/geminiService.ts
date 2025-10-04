@@ -26,6 +26,14 @@ Return the results as strict JSON with the shape {"items": [{"id": string, "genr
 Songs: ${JSON.stringify(payload)}`;
 };
 
+const buildSingleTrackPrompt = (track: EnrichedTrack): string =>
+  `You are a music metadata expert. Infer the single best mainstream Spotify genre for the song described below.
+- NEVER use placeholders like "Unknown", "None", "Misc", "Other", "N/A" or blank values.
+- Always respond with strict JSON exactly like {"genre": "Genre Name"} (Title Case, 1–3 words).
+Song: ${track.name}
+Artists: ${track.artists.map((artist) => artist.name).join(', ')}
+Album: ${track.album.name}`;
+
 let client: GoogleGenAI | undefined;
 
 const getClient = () => {
@@ -43,6 +51,31 @@ const getClient = () => {
 };
 
 export const isConfigured = (): boolean => Boolean(getClient());
+
+const extractTextFromResponse = (payload: unknown): string => {
+  const response = payload as { text?: unknown; candidates?: Array<{ content?: { parts?: Array<{ text?: unknown }> } }> } | undefined;
+
+  const direct = response?.text;
+  if (typeof direct === 'string' && direct.trim()) {
+    return direct;
+  }
+
+  if (Array.isArray(response?.candidates)) {
+    for (const candidate of response.candidates) {
+      const parts = candidate?.content?.parts;
+      if (!Array.isArray(parts)) continue;
+      const combined = parts
+        .map((part) => (typeof part?.text === 'string' ? part.text : ''))
+        .filter((text) => text.trim().length > 0)
+        .join('\n');
+      if (combined.trim().length > 0) {
+        return combined;
+      }
+    }
+  }
+
+  return '';
+};
 
 export const inferGenres = async (tracks: EnrichedTrack[]): Promise<GenreMap> => {
   if (tracks.length === 0) {
@@ -69,19 +102,73 @@ export const inferGenres = async (tracks: EnrichedTrack[]): Promise<GenreMap> =>
       },
     });
 
-    const output = response.text ?? '{}';
-    const parsed = JSON.parse(output) as { items?: Array<{ id: string; genre: string }> };
+    const output = extractTextFromResponse(response);
+    let parsed: { items?: Array<{ id?: unknown; genre?: unknown }> } = {};
+
+    if (output.trim().length) {
+      try {
+        parsed = JSON.parse(output);
+      } catch (parseError) {
+        logger.error('Failed to parse Gemini genre response', parseError);
+        return {};
+      }
+    }
 
     const map: GenreMap = {};
     for (const item of parsed.items ?? []) {
-      if (item.id && item.genre) {
-        map[item.id] = item.genre.trim();
+      const id = typeof item.id === 'string' ? item.id : undefined;
+      const genre = typeof item.genre === 'string' ? item.genre.trim() : undefined;
+      if (id && genre) {
+        map[id] = genre;
       }
     }
     return map;
   } catch (error) {
     logger.error('Failed to infer genres via Google Gemini', error);
     return {};
+  }
+};
+
+export const inferGenreForTrack = async (track: EnrichedTrack): Promise<string | null> => {
+  const ai = getClient();
+  if (!ai) {
+    return null;
+  }
+
+  try {
+    const response = await ai.models.generateContent({
+      model: env.geminiModel,
+      contents: [
+        {
+          role: 'user',
+          parts: [{ text: buildSingleTrackPrompt(track) }],
+        },
+      ],
+      config: {
+        temperature: 0.1,
+        maxOutputTokens: 200,
+      },
+    });
+
+    const output = extractTextFromResponse(response).trim();
+    if (!output) {
+      return null;
+    }
+
+    try {
+      const parsed = JSON.parse(output) as { genre?: unknown };
+      if (parsed && typeof parsed.genre === 'string' && parsed.genre.trim()) {
+        return parsed.genre.trim();
+      }
+    } catch {
+      // fall through to plain-text handling
+    }
+
+    const cleaned = output.replace(/^"+|"+$/g, '').trim();
+    return cleaned.length ? cleaned : null;
+  } catch (error) {
+    logger.error('Failed to infer single-track genre via Google Gemini', error);
+    return null;
   }
 };
 
