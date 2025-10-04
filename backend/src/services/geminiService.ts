@@ -15,13 +15,11 @@ const buildPrompt = (tracks: EnrichedTrack[]): string => {
     album: track.album.name,
   }));
 
-  return `You are a music metadata expert with deep knowledge of Spotify's public genre taxonomy and historical music context.
-Your primary goal is to infer a single, mainstream, and widely recognizable genre for every song provided.
-- **NEVER** use placeholders like "Unknown", "None", "Misc", "Other", "N/A" or blank values. You must infer the closest real genre.
-- **Prioritize well-known, high-level genres** that a mainstream Spotify listener would expect (e.g., "Pop", "Rock", "Hip Hop", "Jazz"). For 80s hits, "Pop Rock", "Arena Rock", or "New Wave" are excellent choices.
-- **Ensure historical context:** For classic tracks, use the genre they were *known for* at the time of their peak popularity, or their most popular modern equivalent.
-- **Formatting:** Always capitalize each word in the genre (Title Case) and keep it concise (1–3 words).
-
+  return `You are a music metadata expert with deep knowledge of Spotify's public genre taxonomy.
+For each song listed below infer a single, mainstream genre that best describes it.
+- Prefer widely recognised genres that a Spotify listener would expect (e.g. "Pop", "Alternative Rock", "Lo-fi Hip Hop", "Jazz", "Indie Folk").
+- Never answer with placeholders like "Unknown", "None", "Misc", "Other", "N/A" or blank values. When unsure, choose the closest real genre instead.
+- Always capitalise each word in the genre (Title Case) and keep it concise (1–3 words).
 Return the results as strict JSON with the shape {"items": [{"id": string, "genre": string}, ...]}.
 Songs: ${JSON.stringify(payload)}`;
 };
