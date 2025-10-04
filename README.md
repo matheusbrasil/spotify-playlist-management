@@ -118,6 +118,75 @@ Both integration tests skip automatically if the required environment variable i
 ## Development Tips
 - The backend stores OAuth sessions in memory for simplicity. In production, replace `sessionStore` with a persistent solution (Redis, DB, etc.).
 - `GEMINI_API_KEY` is optional; when absent, missing genres remain `Unknown`.
+- For reference builds that integrate the Zoom MS-60B+, review the setup guidance adapted from [pthrrr's Raspberry Pi MIDI host notes](https://gist.github.com/pthrrr/7e6d40f720b1a1ebd9618dc95c08bc65).
+
+---
+
+## Raspberry Pi MIDI Host + 3.5" Display
+
+These steps condense the workflow from the reference gist above so you can turn a Raspberry Pi into a USB MIDI host for the Zoom MS-60B+ and reuse this repository’s lightweight chain display for a 3.5" touchscreen.
+
+### 1. Prepare the Raspberry Pi
+
+1. Flash Raspberry Pi OS Lite (64-bit) to a microSD card and boot the Pi.
+2. Update packages and enable the touchscreen frame buffer:
+   ```bash
+   sudo apt update && sudo apt upgrade -y
+   sudo raspi-config  # Enable SPI/I2C if your display requires it, configure locale/timezone
+   ```
+3. Install USB MIDI utilities and autoconnect helpers:
+   ```bash
+   sudo apt install -y alsa-utils aconnectgui python3-alsaaudio python3-rtmidi
+   sudo systemctl enable --now aconnectd.service || true
+   ```
+4. Connect the Zoom pedal via USB; verify it enumerates as a MIDI device:
+   ```bash
+   aconnect -l
+   ```
+   You should see the Zoom MS-60B+ listed under the client section.
+
+### 2. Bridge MIDI Ports Automatically
+
+Create a systemd service to bridge the Zoom pedal to a class-compliant MIDI controller (or virtual port) so the pedal receives clock/PC messages without manual intervention.
+
+```bash
+sudo tee /etc/systemd/system/zoom-midi-bridge.service <<'SERVICE'
+[Unit]
+Description=Auto-connect Zoom MS-60B+ MIDI ports
+After=sound.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/aconnect 'ZOOM MS-60B+':0 20:0
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+SERVICE
+
+sudo systemctl enable --now zoom-midi-bridge.service
+```
+
+Adjust the `ExecStart` ports to match the output from `aconnect -l` in your environment (the right-hand numbers are the ALSA client:port identifiers).
+
+### 3. Deploy the Effect Chain Display
+
+1. Copy the `rpi-display/` directory to the Pi (e.g., via `scp`).
+2. Use the [zoom-explorer](https://github.com/matheusbrasil/zoom-explorer) tooling on your workstation to export the current chain as JSON. Save the JSON file as `effects.json` in `rpi-display/` (follow the schema shown in `sample-chain.json`).
+3. From the Zoom MS-60B+ effect list PDF, export/crop the individual effect thumbnails and place them into `rpi-display/assets/effects/` using lowercase filenames that match the IDs in `effects-catalog.json` (e.g., `svt.png`).
+4. Serve the viewer and open it in a kiosk browser on the Pi:
+   ```bash
+   cd ~/rpi-display
+   python3 -m http.server 8000
+   ```
+5. Launch Chromium in kiosk mode on the 3.5" touchscreen:
+   ```bash
+   chromium-browser --kiosk http://localhost:8000
+   ```
+
+The viewer skips the first slot in the chain (often used for noise reduction) and renders up to four subsequent effects with their artwork and slot numbers. Hitting the **Refresh** button reloads the JSON file so you can update the chain without restarting the kiosk.
+
+> **Tip:** If you prefer an offline workflow, symlink your exported chain JSON to `sample-chain.json` or update `app.js` to point at your preferred filename.
 - Adjust Spotify scopes via `SPOTIFY_SCOPES` if you need more privileges.
 - The React Native client currently stores tokens in-memory. Add secure storage if you need persistence across app restarts.
 
