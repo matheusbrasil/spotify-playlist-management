@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import { getPlaylistWithTracks, getUserPlaylists } from '../services/spotifyService.js';
-import { enrichTracksWithGenres } from '../services/genreService.js';
+import { enrichTracksWithGenres, ensureGenre } from '../services/genreService.js';
 import { requireAccessToken } from '../utils/auth.js';
 import type { EnrichedTrack } from '../types/spotify.js';
 
@@ -17,7 +17,7 @@ const mapTrack = (track: EnrichedTrack) => ({
     id: artist.id,
     name: artist.name,
   })),
-  genre: track.genre ?? 'Unknown',
+  genre: ensureGenre(track.genre),
   genreSource: track.sourceGenre ?? 'fallback',
   durationMs: track.duration_ms,
   previewUrl: track.preview_url ?? null,

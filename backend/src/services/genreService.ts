@@ -29,7 +29,7 @@ const sanitizeGenre = (input?: string | null): string | null => {
     .join(' ');
 };
 
-const ensureGenre = (input?: string | null): string => sanitizeGenre(input) ?? DEFAULT_GENRE;
+export const ensureGenre = (input?: string | null): string => sanitizeGenre(input) ?? DEFAULT_GENRE;
 
 const isGenreMissing = (input?: string | null): boolean => sanitizeGenre(input) === null;
 

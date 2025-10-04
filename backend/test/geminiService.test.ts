@@ -7,7 +7,7 @@ jest.mock('../src/config/env.js', () => ({
     spotifyRedirectUri: 'http://localhost/callback',
     spotifyScopes: 'playlist-read-private',
     geminiApiKey: 'test-gemini-key',
-    geminiModel: 'gemini-1.5-flash',
+    geminiModel: 'gemini-2.5-flash',
   },
 }));
 
@@ -67,7 +67,7 @@ describe('geminiService', () => {
 
     expect(generateContentMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        model: 'gemini-1.5-flash',
+        model: 'gemini-2.5-flash',
       }),
     );
 

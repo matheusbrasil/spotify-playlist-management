@@ -32,7 +32,7 @@ export const env = {
     'user-read-private',
   ].join(' '),
   geminiApiKey: process.env.GEMINI_API_KEY,
-  geminiModel: process.env.GEMINI_MODEL ?? 'gemini-1.5-flash-latest',
+  geminiModel: process.env.GEMINI_MODEL ?? 'gemini-2.5-flash-latest',
   geminiImageModel: process.env.GEMINI_IMAGE_MODEL ?? 'imagen-3.0-generate-002',
   sessionTtlMinutes: parseNumber(process.env.AUTH_SESSION_TTL_MINUTES, 10),
 };

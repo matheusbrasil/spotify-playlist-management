@@ -8,7 +8,7 @@ jest.mock('../src/config/env.js', () => ({
     spotifyRedirectUri: 'http://localhost/callback',
     spotifyScopes: 'playlist-read-private',
     geminiApiKey: 'test-gemini-key',
-    geminiModel: 'gemini-1.5-flash',
+    geminiModel: 'gemini-2.5-flash',
   },
 }));
 

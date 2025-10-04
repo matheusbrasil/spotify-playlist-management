@@ -6,5 +6,5 @@ process.env.SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET ?? 'test-c
 process.env.SPOTIFY_REDIRECT_URI = process.env.SPOTIFY_REDIRECT_URI ?? 'http://localhost/callback';
 process.env.SPOTIFY_SCOPES = process.env.SPOTIFY_SCOPES ?? 'playlist-read-private';
 process.env.GEMINI_API_KEY = process.env.GEMINI_API_KEY ?? '';
-process.env.GEMINI_MODEL = process.env.GEMINI_MODEL ?? 'gemini-1.5-flash';
+process.env.GEMINI_MODEL = process.env.GEMINI_MODEL ?? 'gemini-2.5-flash';
 process.env.AUTH_SESSION_TTL_MINUTES = process.env.AUTH_SESSION_TTL_MINUTES ?? '5';

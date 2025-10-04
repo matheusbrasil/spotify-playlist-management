@@ -6,23 +6,14 @@ import {
   addTracksToPlaylist,
   setPlaylistCoverImage,
 } from '../services/spotifyService.js';
-import { enrichTracksWithGenres } from '../services/genreService.js';
+import { enrichTracksWithGenres, ensureGenre, normalizeGenreKey } from '../services/genreService.js';
 import { generatePlaylistCover } from '../services/geminiService.js';
-import { normalizeGenreKey } from '../services/genreService.js';
 import { requireAccessToken } from '../utils/auth.js';
 import type { EnrichedTrack } from '../types/spotify.js';
 import { HttpError } from '../middleware/errorHandler.js';
 import { logger } from '../utils/logger.js';
 
-const formatGenreLabel = (genre?: string | null): string => {
-  if (!genre) return 'Unknown';
-  const trimmed = genre.trim();
-  if (!trimmed) return 'Unknown';
-  return trimmed
-    .split(/\s+/)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(' ');
-};
+const formatGenreLabel = (genre?: string | null): string => ensureGenre(genre);
 
 const groupTracksByGenre = (tracks: EnrichedTrack[]): Map<string, EnrichedTrack[]> => {
   return tracks.reduce((acc, track) => {
@@ -94,7 +85,7 @@ const filterTracksByGenres = (tracks: EnrichedTrack[], genres: string[]): Enrich
     return [];
   }
   const normalized = new Set(genres.map((genre) => normalizeGenreKey(genre)));
-  return tracks.filter((track) => normalized.has(normalizeGenreKey(track.genre ?? 'Unknown')));
+  return tracks.filter((track) => normalized.has(normalizeGenreKey(ensureGenre(track.genre))));
 };
 
 const buildDescription = (sourceName: string, genres: string[]): string =>
