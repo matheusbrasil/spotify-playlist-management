@@ -52,7 +52,7 @@ export interface SpotifyPlaylist {
 
 export interface EnrichedTrack extends SpotifyTrack {
   genre?: string;
-  sourceGenre?: 'spotify' | 'gemini' | 'unknown';
+  sourceGenre?: 'spotify' | 'gemini' | 'fallback';
 }
 
 export interface GenreSplit {

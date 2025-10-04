@@ -18,7 +18,7 @@ const mapTrack = (track: EnrichedTrack) => ({
     name: artist.name,
   })),
   genre: track.genre ?? 'Unknown',
-  genreSource: track.sourceGenre ?? 'unknown',
+  genreSource: track.sourceGenre ?? 'fallback',
   durationMs: track.duration_ms,
   previewUrl: track.preview_url ?? null,
 });
