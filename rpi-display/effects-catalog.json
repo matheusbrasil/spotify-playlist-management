@@ -1,0 +1,27 @@
+{
+  "ZNR": {
+    "name": "ZNR",
+    "displayName": "Zoom Noise Reduction",
+    "image": "assets/effects/znr.png"
+  },
+  "BassDrv": {
+    "name": "BassDrv",
+    "displayName": "Bass Driver",
+    "image": "assets/effects/bassdrv.png"
+  },
+  "SVT": {
+    "name": "SVT",
+    "displayName": "SVT Amp",
+    "image": "assets/effects/svt.png"
+  },
+  "160Comp": {
+    "name": "160Comp",
+    "displayName": "160 Comp",
+    "image": "assets/effects/160comp.png"
+  },
+  "Chorus": {
+    "name": "Chorus",
+    "displayName": "Bass Chorus",
+    "image": "assets/effects/chorus.png"
+  }
+}
